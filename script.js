@@ -381,6 +381,24 @@ if (newRoundBtn) newRoundBtn.addEventListener("click", shuffleDeck);
 shuffleDeck();
 listenToOpponentCanvas();
 
+// --- UMSCHALTEN DES SPIELFELDS (STÄDTAUSWAHL) ---
+const boardSelect = document.getElementById("boardSelect");
+if (boardSelect) {
+  boardSelect.addEventListener("change", (e) => {
+    const selectedImage = e.target.value;
+    const boardImage = document.getElementById("boardImage");
+    const miniBoardImage = document.getElementById("miniBoardImage");
+    
+    if (boardImage) boardImage.src = selectedImage;
+    if (miniBoardImage) miniBoardImage.src = selectedImage;
+    
+    // Spielfeld-Zeichnungen beim Wechsel leeren & neu anpassen
+    drawnPaths = [];
+    redrawCanvas();
+    syncMyCanvasToFirebase();
+    setTimeout(resizeCanvas, 150);
+  });
+}
 
 // --- 4. WERTUNGSBOGEN BERECHNUNG ---
 function calculateLineScore(districtsId, maxStationsId, riverId, totalElementId) {

@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Next Station London</title>
+  <title>Next Station - U-Bahn Planner</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app-container">
     <header>
-      <h1>Next Station London - U-Bahn Planner</h1>
+      <h1>Next Station - U-Bahn Planner</h1>
       <!-- Spieler-Rolle auswählen -->
       <div class="player-select-bar">
         <label for="playerRoleSelect"><strong>Ich bin:</strong></label>
@@ -24,11 +24,25 @@
       
       <!-- Linke Spalte: Mein Spielfeld & Mitspieler-Vorschau -->
       <div class="boards-column">
+        
         <!-- Mein Haupt-Spielfeld -->
         <div class="board-card">
-          <h2>Mein Spielfeld</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+            <h2>Mein Spielfeld:</h2>
+            <div>
+              <label for="boardSelect"><strong>Stadt wählen:</strong></label>
+              <select id="boardSelect" class="mode-dropdown" style="width: auto; display: inline-block;">
+                <option value="London.png" selected>London 🇬🇧</option>
+                <option value="Berlin.png">Berlin 🇩🇪</option>
+                <option value="Paris.png">Paris 🇫🇷</option>
+                <option value="Tokyo.png">Tokyo 🇯🇵</option>
+                <option value="Freiburg.png">Freiburg 🇩🇪</option>
+              </select>
+            </div>
+          </div>
+          
           <div class="board-wrapper" id="boardWrapper">
-            <img src="London.png" alt="London Spielplan" id="boardImage">
+            <img src="London.png" alt="Spielfeld" id="boardImage">
             <canvas id="drawingCanvas"></canvas>
           </div>
         </div>
@@ -37,7 +51,7 @@
         <div class="board-card mini-board-card">
           <h2>Spielfeld der Mitspielerin / des Mitspielers (Live 👀)</h2>
           <div class="board-wrapper mini-wrapper" id="miniBoardWrapper">
-            <img src="London.png" alt="London Spielplan Vorschau" id="miniBoardImage">
+            <img src="London.png" alt="Spielfeld Vorschau" id="miniBoardImage">
             <canvas id="miniCanvas"></canvas>
           </div>
         </div>
@@ -166,6 +180,6 @@
     </div>
   </div>
 
-  <script type="module" src="script.js?v=3"></script>
+  <script type="module" src="script.js?v=4"></script>
 </body>
 </html>
