@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Next Station London</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>Next Station London - U-Bahn Planner</h1>
+    </header>
+
+    <div class="main-content">
+      <!-- Spielplan & Zeichenfläche -->
+      <div class="board-wrapper" id="boardWrapper">
+        <img src="London.png" alt="London Spielplan" id="boardImage">
+        <canvas id="drawingCanvas"></canvas>
+      </div>
+
+      <!-- Bedienleiste -->
+      <div class="controls-panel">
+        
+        <!-- 1. Stiftfarbe wählen -->
+        <div class="panel-section">
+          <h3>1. Stiftfarbe wählen</h3>
+          <div class="color-picker">
+            <button class="color-btn active" data-color="#0055A5" style="background-color: #0055A5;">Blau</button>
+            <button class="color-btn" data-color="#E6007E" style="background-color: #E6007E;">Rosa</button>
+            <button class="color-btn" data-color="#009A44" style="background-color: #009A44;">Grün</button>
+            <button class="color-btn" data-color="#800080" style="background-color: #800080;">Violett</button>
+          </div>
+          <button id="clearCanvasBtn" class="secondary-btn">Zeichnungen löschen</button>
+        </div>
+
+        <!-- 2. Kartendeck -->
+        <div class="panel-section">
+          <h3>2. Kartendeck</h3>
+          <div class="card-display" id="cardDisplay">
+            <div class="card-placeholder">Klicke auf "Karte ziehen"</div>
+          </div>
+          
+          <div class="deck-stats">
+            <p>Unterirdische Karten: <strong id="undergroundCount">0</strong> / 5</p>
+            <p>Verbleibende Karten: <span id="remainingCount">11</span></p>
+          </div>
+
+          <div class="btn-group">
+            <button id="drawCardBtn" class="primary-btn">Karte ziehen</button>
+            <button id="newRoundBtn" class="secondary-btn">Neuer Durchgang (Mischen)</button>
+          </div>
+          
+          <div id="statusMessage" class="status-msg"></div>
+        </div>
+
+        <!-- 3. Wertungsbogen (NEU) -->
+        <div class="panel-section score-section">
+          <h3>3. Wertungsbogen</h3>
+          <table class="score-table">
+            <thead>
+              <tr>
+                <th>Linie</th>
+                <th>Bez.</th>
+                <th>x</th>
+                <th>Max</th>
+                <th>+</th>
+                <th>Fluss</th>
+                <th>= Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="color: #0055A5;">
+                <td><strong>Blau</strong></td>
+                <td><input type="number" class="score-input" id="blueDistricts" min="0" value="0"></td>
+                <td>x</td>
+                <td><input type="number" class="score-input" id="blueMaxStations" min="0" value="0"></td>
+                <td>+</td>
+                <td><input type="number" class="score-input" id="blueRiver" min="0" value="0"></td>
+                <td><strong id="blueTotal">0</strong></td>
+              </tr>
+              <tr style="color: #E6007E;">
+                <td><strong>Rosa</strong></td>
+                <td><input type="number" class="score-input" id="pinkDistricts" min="0" value="0"></td>
+                <td>x</td>
+                <td><input type="number" class="score-input" id="pinkMaxStations" min="0" value="0"></td>
+                <td>+</td>
+                <td><input type="number" class="score-input" id="pinkRiver" min="0" value="0"></td>
+                <td><strong id="pinkTotal">0</strong></td>
+              </tr>
+              <tr style="color: #009A44;">
+                <td><strong>Grün</strong></td>
+                <td><input type="number" class="score-input" id="greenDistricts" min="0" value="0"></td>
+                <td>x</td>
+                <td><input type="number" class="score-input" id="greenMaxStations" min="0" value="0"></td>
+                <td>+</td>
+                <td><input type="number" class="score-input" id="greenRiver" min="0" value="0"></td>
+                <td><strong id="greenTotal">0</strong></td>
+              </tr>
+              <tr style="color: #800080;">
+                <td><strong>Violett</strong></td>
+                <td><input type="number" class="score-input" id="purpleDistricts" min="0" value="0"></td>
+                <td>x</td>
+                <td><input type="number" class="score-input" id="purpleMaxStations" min="0" value="0"></td>
+                <td>+</td>
+                <td><input type="number" class="score-input" id="purpleRiver" min="0" value="0"></td>
+                <td><strong id="purpleTotal">0</strong></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="bonus-scores">
+            <label>Sehenswürdigkeiten-Punkte:
+              <input type="number" class="score-input" id="attractionsBonus" min="0" value="0">
+            </label>
+            <label>Umsteigestationen-Punkte:
+              <input type="number" class="score-input" id="interchangeBonus" min="0" value="0">
+            </label>
+          </div>
+
+          <div class="grand-total">
+            GESAMTERGEBNIS: <span id="finalScore">0</span> Punkte
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
