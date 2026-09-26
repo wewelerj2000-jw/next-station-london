@@ -109,7 +109,7 @@ header h1 {
 }
 
 .mini-wrapper canvas {
-  pointer-events: none; /* Auf dem Feld der Mitspielerin kann man nicht selbst zeichnen */
+  pointer-events: none;
 }
 
 /* Rechte Spalte (Bedienleiste) */

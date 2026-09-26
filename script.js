@@ -16,7 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// Spieler-Rollenverwaltung
+// Rollenverwaltung
 let myRole = "player1";
 let opponentRole = "player2";
 
@@ -60,7 +60,8 @@ function shuffleDeck() {
   }
   undergroundDrawnCount = 0;
   
-  const selectedMode = document.getElementById("gameModeSelect").value;
+  const modeSelect = document.getElementById("gameModeSelect");
+  const selectedMode = modeSelect ? modeSelect.value : "standard";
 
   set(ref(database, 'game/state'), {
     cardName: "Stapel gemischt! Klicke 'Karte ziehen'",
@@ -84,7 +85,8 @@ function drawCard() {
     undergroundDrawnCount++;
   }
 
-  const selectedMode = document.getElementById("gameModeSelect").value;
+  const modeSelect = document.getElementById("gameModeSelect");
+  const selectedMode = modeSelect ? modeSelect.value : "standard";
 
   set(ref(database, 'game/state'), {
     cardName: card.name,
@@ -145,9 +147,12 @@ onValue(ref(database, 'game/state'), (snapshot) => {
   }
 });
 
-document.getElementById("gameModeSelect").addEventListener("change", () => {
-  shuffleDeck();
-});
+const modeDropdown = document.getElementById("gameModeSelect");
+if (modeDropdown) {
+  modeDropdown.addEventListener("change", () => {
+    shuffleDeck();
+  });
+}
 
 
 // --- 3. ZEICHENFUNKTION (MEIN CANVAS & MITSPIELER MINI-CANVAS) ---
@@ -180,12 +185,16 @@ function listenToOpponentCanvas() {
 
 function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawnPaths.forEach(path => {
-    if (!path.points || path.points.length < 2) return;
+  const pathsArray = Array.isArray(drawnPaths) ? drawnPaths : Object.values(drawnPaths);
+  pathsArray.forEach(path => {
+    if (!path || !path.points) return;
+    const pts = Array.isArray(path.points) ? path.points : Object.values(path.points);
+    if (pts.length < 2) return;
+
     ctx.beginPath();
-    ctx.moveTo(path.points[0].x, path.points[0].y);
-    for (let i = 1; i < path.points.length; i++) {
-      ctx.lineTo(path.points[i].x, path.points[i].y);
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(pts[i].x, pts[i].y);
     }
     
     if (path.isEraser) {
@@ -205,12 +214,16 @@ function redrawCanvas() {
 
 function redrawMiniCanvas(opponentPaths) {
   miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
-  opponentPaths.forEach(path => {
-    if (!path.points || path.points.length < 2) return;
+  const pathsArray = Array.isArray(opponentPaths) ? opponentPaths : Object.values(opponentPaths);
+  pathsArray.forEach(path => {
+    if (!path || !path.points) return;
+    const pts = Array.isArray(path.points) ? path.points : Object.values(path.points);
+    if (pts.length < 2) return;
+
     miniCtx.beginPath();
-    miniCtx.moveTo(path.points[0].x, path.points[0].y);
-    for (let i = 1; i < path.points.length; i++) {
-      miniCtx.lineTo(path.points[i].x, path.points[i].y);
+    miniCtx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) {
+      miniCtx.lineTo(pts[i].x, pts[i].y);
     }
     
     if (path.isEraser) {
@@ -229,8 +242,8 @@ function redrawMiniCanvas(opponentPaths) {
 }
 
 function resizeCanvas() {
-  const w = boardImage.naturalWidth || 700;
-  const h = boardImage.naturalHeight || 700;
+  const w = boardImage.naturalWidth || boardImage.clientWidth || 700;
+  const h = boardImage.naturalHeight || boardImage.clientHeight || 700;
 
   canvas.width = w;
   canvas.height = h;
