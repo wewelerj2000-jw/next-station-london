@@ -10,16 +10,40 @@
   <div class="app-container">
     <header>
       <h1>Next Station London - U-Bahn Planner</h1>
+      <!-- Spieler-Rolle auswählen -->
+      <div class="player-select-bar">
+        <label for="playerRoleSelect"><strong>Ich bin:</strong></label>
+        <select id="playerRoleSelect" class="role-dropdown">
+          <option value="player1">Spieler 1</option>
+          <option value="player2">Spieler 2</option>
+        </select>
+      </div>
     </header>
 
     <div class="main-content">
-      <!-- Spielplan & Zeichenfläche -->
-      <div class="board-wrapper" id="boardWrapper">
-        <img src="London.png" alt="London Spielplan" id="boardImage">
-        <canvas id="drawingCanvas"></canvas>
+      
+      <!-- Linke Spalte: Mein Spielfeld & Mitspieler-Vorschau -->
+      <div class="boards-column">
+        <!-- Mein Haupt-Spielfeld -->
+        <div class="board-card">
+          <h2>Mein Spielfeld</h2>
+          <div class="board-wrapper" id="boardWrapper">
+            <img src="London.png" alt="London Spielplan" id="boardImage">
+            <canvas id="drawingCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Mini-Spielfeld der Mitspielerin / des Mitspielers -->
+        <div class="board-card mini-board-card">
+          <h2>Spielfeld der Mitspielerin / des Mitspielers (Live 👀)</h2>
+          <div class="board-wrapper mini-wrapper" id="miniBoardWrapper">
+            <img src="London.png" alt="London Spielplan Vorschau" id="miniBoardImage">
+            <canvas id="miniCanvas"></canvas>
+          </div>
+        </div>
       </div>
 
-      <!-- Bedienleiste -->
+      <!-- Rechte Spalte: Bedienleiste, Kartendeck & Wertung -->
       <div class="controls-panel">
         
         <!-- 1. Stiftfarbe wählen & Werkzeuge -->
@@ -32,7 +56,6 @@
             <button class="color-btn" data-color="#800080" style="background-color: #800080;">Violett</button>
           </div>
           
-          <!-- Neue Werkzeug-Buttons -->
           <div class="tool-btn-group">
             <button id="eraserBtn" class="tool-btn">Radierer 🧹</button>
             <button id="undoBtn" class="tool-btn undo-btn">Rückgängig ↩️</button>
@@ -44,6 +67,15 @@
         <!-- 2. Kartendeck -->
         <div class="panel-section">
           <h3>2. Kartendeck</h3>
+          
+          <div class="mode-select-box">
+            <label for="gameModeSelect"><strong>Regel-Modus:</strong></label>
+            <select id="gameModeSelect" class="mode-dropdown">
+              <option value="standard">Standard (Stopp bei 5 unterirdischen)</option>
+              <option value="allCards">Hausregel (Alle 11 Karten aufdecken)</option>
+            </select>
+          </div>
+
           <div class="card-display" id="cardDisplay">
             <div class="card-placeholder">Klicke auf "Karte ziehen"</div>
           </div>

@@ -8,11 +8,11 @@
 body {
   background-color: #f4f6f9;
   color: #333;
-  padding: 20px;
+  padding: 15px;
 }
 
 .app-container {
-  max-width: 1200px;
+  max-width: 1250px;
   margin: 0 auto;
 }
 
@@ -23,6 +23,27 @@ header {
 
 header h1 {
   color: #1a252f;
+  margin-bottom: 10px;
+}
+
+.player-select-bar {
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.role-dropdown {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #3498db;
+  font-weight: bold;
+  color: #2c3e50;
+  background-color: #ebf5fb;
+  cursor: pointer;
 }
 
 .main-content {
@@ -30,14 +51,36 @@ header h1 {
   flex-wrap: wrap;
   gap: 20px;
   justify-content: center;
+  align-items: flex-start;
 }
 
-/* Spielplan & Canvas Layout */
+/* Spalte für die Spielfelder */
+.boards-column {
+  flex: 1.4;
+  min-width: 320px;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.board-card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+}
+
+.board-card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  color: #2c3e50;
+  text-align: center;
+}
+
 .board-wrapper {
   position: relative;
-  max-width: 700px;
   width: 100%;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
   border-radius: 8px;
   overflow: hidden;
   background: #fff;
@@ -59,11 +102,21 @@ header h1 {
   touch-action: none;
 }
 
-/* Bedienleiste */
+/* Mini Board Styling */
+.mini-board-card {
+  border: 2px dashed #bdc3c7;
+  background: #fafafa;
+}
+
+.mini-wrapper canvas {
+  pointer-events: none; /* Auf dem Feld der Mitspielerin kann man nicht selbst zeichnen */
+}
+
+/* Rechte Spalte (Bedienleiste) */
 .controls-panel {
   flex: 1;
   min-width: 300px;
-  max-width: 400px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -72,7 +125,7 @@ header h1 {
 .panel-section {
   background: white;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
@@ -107,7 +160,63 @@ header h1 {
   outline: 3px solid #333;
 }
 
-/* Kartenanzeige */
+/* Werkzeuge (Radierer & Rückgängig) */
+.tool-btn-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tool-btn {
+  flex: 1;
+  background-color: #7f8c8d;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.tool-btn:hover {
+  background-color: #95a5a6;
+}
+
+.tool-btn.active {
+  background-color: #e67e22;
+  outline: 3px solid #d35400;
+  transform: scale(1.03);
+}
+
+.tool-btn.undo-btn {
+  background-color: #34495e;
+}
+
+.tool-btn.undo-btn:hover {
+  background-color: #2c3e50;
+}
+
+/* Dropdown & Deck */
+.mode-select-box {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.9rem;
+}
+
+.mode-dropdown {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
 .card-display {
   height: 150px;
   border: 2px dashed #ccc;
@@ -143,8 +252,8 @@ header h1 {
 }
 
 .card-title {
-  font-size: 1.3rem;
-  margin-bottom: 5px;
+  font-size: 1.1rem;
+  margin-bottom: 3px;
 }
 
 .card-type {
@@ -208,6 +317,7 @@ button.secondary-btn:hover {
   background: #f39c12;
   color: white;
 }
+
 /* Wertungsbogen Styling */
 .score-table {
   width: 100%;
@@ -252,40 +362,4 @@ button.secondary-btn:hover {
   text-align: center;
   font-size: 1.1rem;
   font-weight: bold;
-}
-/* Neue Werkzeug-Buttons (Radierer & Rückgängig) */
-.tool-btn-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.tool-btn {
-  flex: 1;
-  background-color: #7f8c8d;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.tool-btn:hover {
-  background-color: #95a5a6;
-}
-
-.tool-btn.active {
-  background-color: #e67e22;
-  outline: 3px solid #d35400;
-  transform: scale(1.03);
-}
-
-.tool-btn.undo-btn {
-  background-color: #34495e;
-}
-
-.tool-btn.undo-btn:hover {
-  background-color: #2c3e50;
 }

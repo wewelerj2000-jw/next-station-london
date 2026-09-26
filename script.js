@@ -16,6 +16,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+// Spieler-Rollenverwaltung
+let myRole = "player1";
+let opponentRole = "player2";
+
+const roleSelect = document.getElementById("playerRoleSelect");
+if (roleSelect) {
+  roleSelect.addEventListener("change", (e) => {
+    myRole = e.target.value;
+    opponentRole = (myRole === "player1") ? "player2" : "player1";
+    syncMyCanvasToFirebase();
+    listenToOpponentCanvas();
+  });
+}
+
 
 // --- 2. KARTENDECK & SYNCHRONISATION ---
 const allCards = [
@@ -46,12 +60,15 @@ function shuffleDeck() {
   }
   undergroundDrawnCount = 0;
   
+  const selectedMode = document.getElementById("gameModeSelect").value;
+
   set(ref(database, 'game/state'), {
     cardName: "Stapel gemischt! Klicke 'Karte ziehen'",
     cardType: "neutral",
     cardImage: "",
     undergroundCount: 0,
     remainingCount: 11,
+    gameMode: selectedMode,
     timestamp: Date.now()
   });
 }
@@ -67,12 +84,15 @@ function drawCard() {
     undergroundDrawnCount++;
   }
 
+  const selectedMode = document.getElementById("gameModeSelect").value;
+
   set(ref(database, 'game/state'), {
     cardName: card.name,
     cardType: card.type,
     cardImage: card.image,
     undergroundCount: undergroundDrawnCount,
     remainingCount: drawPile.length,
+    gameMode: selectedMode,
     timestamp: Date.now()
   });
 }
@@ -83,16 +103,22 @@ onValue(ref(database, 'game/state'), (snapshot) => {
 
   const cardDisplay = document.getElementById("cardDisplay");
   const statusMsg = document.getElementById("statusMessage");
+  const modeSelect = document.getElementById("gameModeSelect");
+
+  if (modeSelect && data.gameMode) {
+    modeSelect.value = data.gameMode;
+  }
 
   if (data.cardType === "neutral") {
     cardDisplay.innerHTML = `<div class="card-placeholder">${data.cardName}</div>`;
     statusMsg.style.display = "none";
-    document.getElementById("drawCardBtn").disabled = false;
+    const drawBtn = document.getElementById("drawCardBtn");
+    if (drawBtn) drawBtn.disabled = false;
   } else {
     cardDisplay.innerHTML = `
       <div class="card ${data.cardType}">
         <img src="${data.cardImage}" alt="${data.cardName}" onerror="this.style.display='none';" style="max-height: 110px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-        <div class="card-title" style="font-size: 1.1rem;">${data.cardName}</div>
+        <div class="card-title">${data.cardName}</div>
         <div class="card-type">${data.cardType === "unterirdisch" ? "Unterirdische Karte" : "Oberirdische Karte"}</div>
       </div>
     `;
@@ -101,32 +127,61 @@ onValue(ref(database, 'game/state'), (snapshot) => {
   document.getElementById("undergroundCount").innerText = data.undergroundCount;
   document.getElementById("remainingCount").innerText = data.remainingCount;
 
-  if (data.undergroundCount === 5) {
+  const drawBtn = document.getElementById("drawCardBtn");
+
+  if (data.gameMode === "standard" && data.undergroundCount === 5) {
     statusMsg.innerText = "⚠️ 5. unterirdische Karte gezogen! Dieser Durchgang endet jetzt.";
     statusMsg.className = "status-msg warning";
     statusMsg.style.display = "block";
-    document.getElementById("drawCardBtn").disabled = true;
+    if (drawBtn) drawBtn.disabled = true;
+  } else if (data.remainingCount === 0) {
+    statusMsg.innerText = "🏁 Alle 11 Karten gezogen! Durchgang beendet.";
+    statusMsg.className = "status-msg warning";
+    statusMsg.style.display = "block";
+    if (drawBtn) drawBtn.disabled = true;
+  } else {
+    statusMsg.style.display = "none";
+    if (drawBtn) drawBtn.disabled = false;
   }
 });
 
+document.getElementById("gameModeSelect").addEventListener("change", () => {
+  shuffleDeck();
+});
 
-// --- 3. ZEICHENFUNKTION MIT RÜCKGÄNGIG & RADIERER ---
+
+// --- 3. ZEICHENFUNKTION (MEIN CANVAS & MITSPIELER MINI-CANVAS) ---
 const canvas = document.getElementById("drawingCanvas");
 const ctx = canvas.getContext("2d");
 const boardImage = document.getElementById("boardImage");
+
+const miniCanvas = document.getElementById("miniCanvas");
+const miniCtx = miniCanvas.getContext("2d");
+const miniBoardImage = document.getElementById("miniBoardImage");
 
 let isDrawing = false;
 let currentColor = "#0055A5";
 let strokeWidth = 2.5;
 let isEraser = false;
 
-let drawnPaths = []; // Speichert alle Striche: { color, width, isEraser, points: [{x, y}, ...] }
+let drawnPaths = [];
 let currentPath = null;
+
+function syncMyCanvasToFirebase() {
+  set(ref(database, `game/players/${myRole}/paths`), drawnPaths);
+}
+
+function listenToOpponentCanvas() {
+  onValue(ref(database, `game/players/${opponentRole}/paths`), (snapshot) => {
+    const paths = snapshot.val() || [];
+    redrawMiniCanvas(paths);
+  });
+}
 
 function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawnPaths.forEach(path => {
-    if (path.points.length < 2) return;
+    if (!path.points || path.points.length < 2) return;
     ctx.beginPath();
     ctx.moveTo(path.points[0].x, path.points[0].y);
     for (let i = 1; i < path.points.length; i++) {
@@ -148,13 +203,46 @@ function redrawCanvas() {
   ctx.globalCompositeOperation = 'source-over';
 }
 
+function redrawMiniCanvas(opponentPaths) {
+  miniCtx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+  opponentPaths.forEach(path => {
+    if (!path.points || path.points.length < 2) return;
+    miniCtx.beginPath();
+    miniCtx.moveTo(path.points[0].x, path.points[0].y);
+    for (let i = 1; i < path.points.length; i++) {
+      miniCtx.lineTo(path.points[i].x, path.points[i].y);
+    }
+    
+    if (path.isEraser) {
+      miniCtx.globalCompositeOperation = 'destination-out';
+      miniCtx.lineWidth = 15;
+    } else {
+      miniCtx.globalCompositeOperation = 'source-over';
+      miniCtx.strokeStyle = path.color;
+      miniCtx.lineWidth = path.width;
+    }
+    miniCtx.lineCap = "round";
+    miniCtx.lineJoin = "round";
+    miniCtx.stroke();
+  });
+  miniCtx.globalCompositeOperation = 'source-over';
+}
+
 function resizeCanvas() {
-  canvas.width = boardImage.naturalWidth || boardImage.clientWidth;
-  canvas.height = boardImage.naturalHeight || boardImage.clientHeight;
+  const w = boardImage.naturalWidth || 700;
+  const h = boardImage.naturalHeight || 700;
+
+  canvas.width = w;
+  canvas.height = h;
+
+  miniCanvas.width = w;
+  miniCanvas.height = h;
+
   redrawCanvas();
 }
 
 boardImage.onload = resizeCanvas;
+miniBoardImage.onload = resizeCanvas;
 window.onresize = resizeCanvas;
 if (boardImage.complete) resizeCanvas();
 
@@ -218,6 +306,7 @@ function stopDrawing() {
     ctx.globalCompositeOperation = 'source-over';
     isDrawing = false;
     currentPath = null;
+    syncMyCanvasToFirebase();
   }
 }
 
@@ -230,42 +319,54 @@ canvas.addEventListener("touchstart", startDrawing);
 canvas.addEventListener("touchmove", draw);
 canvas.addEventListener("touchend", stopDrawing);
 
-// Stiftfarben auswählen
 document.querySelectorAll(".color-btn").forEach(btn => {
   btn.addEventListener("click", (e) => {
     isEraser = false;
-    document.getElementById("eraserBtn").classList.remove("active");
+    const eraserBtn = document.getElementById("eraserBtn");
+    if (eraserBtn) eraserBtn.classList.remove("active");
     document.querySelectorAll(".color-btn").forEach(b => b.classList.remove("active"));
     e.target.classList.add("active");
     currentColor = e.target.getAttribute("data-color");
   });
 });
 
-// Radierer-Button
-document.getElementById("eraserBtn").addEventListener("click", () => {
-  isEraser = true;
-  document.querySelectorAll(".color-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById("eraserBtn").classList.add("active");
-});
+const eraserBtn = document.getElementById("eraserBtn");
+if (eraserBtn) {
+  eraserBtn.addEventListener("click", () => {
+    isEraser = true;
+    document.querySelectorAll(".color-btn").forEach(b => b.classList.remove("active"));
+    eraserBtn.classList.add("active");
+  });
+}
 
-// Rückgängig-Button (Entfernt den letzten Strich)
-document.getElementById("undoBtn").addEventListener("click", () => {
-  drawnPaths.pop();
-  redrawCanvas();
-});
-
-// Alles löschen
-document.getElementById("clearCanvasBtn").addEventListener("click", () => {
-  if (confirm("Möchtest du wirklich alle eingezeichneten Linien löschen?")) {
-    drawnPaths = [];
+const undoBtn = document.getElementById("undoBtn");
+if (undoBtn) {
+  undoBtn.addEventListener("click", () => {
+    drawnPaths.pop();
     redrawCanvas();
-  }
-});
+    syncMyCanvasToFirebase();
+  });
+}
 
-document.getElementById("drawCardBtn").addEventListener("click", drawCard);
-document.getElementById("newRoundBtn").addEventListener("click", shuffleDeck);
+const clearBtn = document.getElementById("clearCanvasBtn");
+if (clearBtn) {
+  clearBtn.addEventListener("click", () => {
+    if (confirm("Möchtest du wirklich alle deine Linien löschen?")) {
+      drawnPaths = [];
+      redrawCanvas();
+      syncMyCanvasToFirebase();
+    }
+  });
+}
+
+const drawCardBtn = document.getElementById("drawCardBtn");
+if (drawCardBtn) drawCardBtn.addEventListener("click", drawCard);
+
+const newRoundBtn = document.getElementById("newRoundBtn");
+if (newRoundBtn) newRoundBtn.addEventListener("click", shuffleDeck);
 
 shuffleDeck();
+listenToOpponentCanvas();
 
 
 // --- 4. WERTUNGSBOGEN BERECHNUNG ---
