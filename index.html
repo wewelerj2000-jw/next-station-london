@@ -22,7 +22,7 @@
       <!-- Bedienleiste -->
       <div class="controls-panel">
         
-        <!-- 1. Stiftfarbe wählen -->
+        <!-- 1. Stiftfarbe wählen & Werkzeuge -->
         <div class="panel-section">
           <h3>1. Stiftfarbe wählen</h3>
           <div class="color-picker">
@@ -31,7 +31,14 @@
             <button class="color-btn" data-color="#009A44" style="background-color: #009A44;">Grün</button>
             <button class="color-btn" data-color="#800080" style="background-color: #800080;">Violett</button>
           </div>
-          <button id="clearCanvasBtn" class="secondary-btn">Zeichnungen löschen</button>
+          
+          <!-- Neue Werkzeug-Buttons -->
+          <div class="tool-btn-group">
+            <button id="eraserBtn" class="tool-btn">Radierer 🧹</button>
+            <button id="undoBtn" class="tool-btn undo-btn">Rückgängig ↩️</button>
+          </div>
+          
+          <button id="clearCanvasBtn" class="secondary-btn">Alles löschen</button>
         </div>
 
         <!-- 2. Kartendeck -->
@@ -54,7 +61,7 @@
           <div id="statusMessage" class="status-msg"></div>
         </div>
 
-        <!-- 3. Wertungsbogen (NEU) -->
+        <!-- 3. Wertungsbogen -->
         <div class="panel-section score-section">
           <h3>3. Wertungsbogen</h3>
           <table class="score-table">

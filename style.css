@@ -253,3 +253,39 @@ button.secondary-btn:hover {
   font-size: 1.1rem;
   font-weight: bold;
 }
+/* Neue Werkzeug-Buttons (Radierer & Rückgängig) */
+.tool-btn-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tool-btn {
+  flex: 1;
+  background-color: #7f8c8d;
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.tool-btn:hover {
+  background-color: #95a5a6;
+}
+
+.tool-btn.active {
+  background-color: #e67e22;
+  outline: 3px solid #d35400;
+  transform: scale(1.03);
+}
+
+.tool-btn.undo-btn {
+  background-color: #34495e;
+}
+
+.tool-btn.undo-btn:hover {
+  background-color: #2c3e50;
+}

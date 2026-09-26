@@ -1,4 +1,4 @@
-// --- 1. FIREBASE SETUP (DEINE ZUGANGSDATEN) ---
+// --- 1. FIREBASE SETUP ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
@@ -46,7 +46,6 @@ function shuffleDeck() {
   }
   undergroundDrawnCount = 0;
   
-  // In Firebase zurücksetzen
   set(ref(database, 'game/state'), {
     cardName: "Stapel gemischt! Klicke 'Karte ziehen'",
     cardType: "neutral",
@@ -68,7 +67,6 @@ function drawCard() {
     undergroundDrawnCount++;
   }
 
-  // Karte in Firebase speichern (sendet sie live an beide Spieler!)
   set(ref(database, 'game/state'), {
     cardName: card.name,
     cardType: card.type,
@@ -79,7 +77,6 @@ function drawCard() {
   });
 }
 
-// Live-Empfang von Firebase (reagiert bei BEIDEN Spielern sofort)
 onValue(ref(database, 'game/state'), (snapshot) => {
   const data = snapshot.val();
   if (!data) return;
@@ -113,7 +110,7 @@ onValue(ref(database, 'game/state'), (snapshot) => {
 });
 
 
-// --- 3. ZEICHENFUNKTION (CANVAS) ---
+// --- 3. ZEICHENFUNKTION MIT RÜCKGÄNGIG & RADIERER ---
 const canvas = document.getElementById("drawingCanvas");
 const ctx = canvas.getContext("2d");
 const boardImage = document.getElementById("boardImage");
@@ -121,10 +118,40 @@ const boardImage = document.getElementById("boardImage");
 let isDrawing = false;
 let currentColor = "#0055A5";
 let strokeWidth = 2.5;
+let isEraser = false;
+
+let drawnPaths = []; // Speichert alle Striche: { color, width, isEraser, points: [{x, y}, ...] }
+let currentPath = null;
+
+function redrawCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawnPaths.forEach(path => {
+    if (path.points.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(path.points[0].x, path.points[0].y);
+    for (let i = 1; i < path.points.length; i++) {
+      ctx.lineTo(path.points[i].x, path.points[i].y);
+    }
+    
+    if (path.isEraser) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.lineWidth = 15;
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = path.color;
+      ctx.lineWidth = path.width;
+    }
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke();
+  });
+  ctx.globalCompositeOperation = 'source-over';
+}
 
 function resizeCanvas() {
   canvas.width = boardImage.naturalWidth || boardImage.clientWidth;
   canvas.height = boardImage.naturalHeight || boardImage.clientHeight;
+  redrawCanvas();
 }
 
 boardImage.onload = resizeCanvas;
@@ -153,18 +180,34 @@ function getCoordinates(e) {
 function startDrawing(e) {
   isDrawing = true;
   const coords = getCoordinates(e);
+  
+  currentPath = {
+    color: currentColor,
+    width: strokeWidth,
+    isEraser: isEraser,
+    points: [coords]
+  };
+  drawnPaths.push(currentPath);
+
   ctx.beginPath();
   ctx.moveTo(coords.x, coords.y);
-  ctx.strokeStyle = currentColor;
-  ctx.lineWidth = strokeWidth;
+  if (isEraser) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.lineWidth = 15;
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = currentColor;
+    ctx.lineWidth = strokeWidth;
+  }
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 }
 
 function draw(e) {
-  if (!isDrawing) return;
+  if (!isDrawing || !currentPath) return;
   e.preventDefault();
   const coords = getCoordinates(e);
+  currentPath.points.push(coords);
   ctx.lineTo(coords.x, coords.y);
   ctx.stroke();
 }
@@ -172,7 +215,9 @@ function draw(e) {
 function stopDrawing() {
   if (isDrawing) {
     ctx.closePath();
+    ctx.globalCompositeOperation = 'source-over';
     isDrawing = false;
+    currentPath = null;
   }
 }
 
@@ -185,17 +230,35 @@ canvas.addEventListener("touchstart", startDrawing);
 canvas.addEventListener("touchmove", draw);
 canvas.addEventListener("touchend", stopDrawing);
 
+// Stiftfarben auswählen
 document.querySelectorAll(".color-btn").forEach(btn => {
   btn.addEventListener("click", (e) => {
+    isEraser = false;
+    document.getElementById("eraserBtn").classList.remove("active");
     document.querySelectorAll(".color-btn").forEach(b => b.classList.remove("active"));
     e.target.classList.add("active");
     currentColor = e.target.getAttribute("data-color");
   });
 });
 
+// Radierer-Button
+document.getElementById("eraserBtn").addEventListener("click", () => {
+  isEraser = true;
+  document.querySelectorAll(".color-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("eraserBtn").classList.add("active");
+});
+
+// Rückgängig-Button (Entfernt den letzten Strich)
+document.getElementById("undoBtn").addEventListener("click", () => {
+  drawnPaths.pop();
+  redrawCanvas();
+});
+
+// Alles löschen
 document.getElementById("clearCanvasBtn").addEventListener("click", () => {
   if (confirm("Möchtest du wirklich alle eingezeichneten Linien löschen?")) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawnPaths = [];
+    redrawCanvas();
   }
 });
 
