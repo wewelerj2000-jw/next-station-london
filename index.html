@@ -10,7 +10,7 @@
   <div class="app-container">
     <header>
       <h1>Next Station - U-Bahn Planner</h1>
-      <!-- Spieler:innen-Rolle auswählen -->
+      <!-- Spieler:in-Rolle auswählen -->
       <div class="player-select-bar">
         <label for="playerRoleSelect"><strong>Ich bin:</strong></label>
         <select id="playerRoleSelect" class="role-dropdown">
@@ -22,7 +22,7 @@
 
     <div class="main-content">
       
-      <!-- Linke Spalte: Mein Spielfeld & Mitspieler:innen-Vorschau -->
+      <!-- Linke Spalte: Mein Spielfeld & Mitspieler:in-Vorschau -->
       <div class="boards-column">
         
         <!-- Mein Haupt-Spielfeld -->
@@ -32,16 +32,17 @@
             <div>
               <label for="boardSelect"><strong>Stadt wählen:</strong></label>
               <select id="boardSelect" class="mode-dropdown" style="width: auto; display: inline-block;">
-                <option value="London.png" selected>London 🇬🇧</option>
+                <option value="London.png">London 🇬🇧</option>
                 <option value="Berlin.png">Berlin 🇩🇪</option>
                 <option value="Paris.png">Paris 🇫🇷</option>
                 <option value="Tokyo.png">Tokyo 🇯🇵</option>
+                <option value="Freiburg.png" selected>Freiburg 🇩🇪</option>
               </select>
             </div>
           </div>
           
           <div class="board-wrapper" id="boardWrapper">
-            <img src="London.png" alt="Spielfeld" id="boardImage">
+            <img src="Freiburg.png" alt="Spielfeld" id="boardImage">
             <canvas id="drawingCanvas"></canvas>
           </div>
         </div>
@@ -50,7 +51,7 @@
         <div class="board-card mini-board-card">
           <h2>Spielfeld der Mitspielerin / des Mitspielers (Live 👀)</h2>
           <div class="board-wrapper mini-wrapper" id="miniBoardWrapper">
-            <img src="London.png" alt="Spielfeld Vorschau" id="miniBoardImage">
+            <img src="Freiburg.png" alt="Spielfeld Vorschau" id="miniBoardImage">
             <canvas id="miniCanvas"></canvas>
           </div>
         </div>
